@@ -9,6 +9,8 @@ export const surveyResponsesTable = pgTable("survey_responses", {
   frequency: text("frequency").notNull(),
   hobbies: text("hobbies").array().notNull(),
   other_hobby: text("other_hobby"),
+  free_time_hours: text("free_time_hours").notNull(),
+  stress_level: text("stress_level").notNull(),
   created_at: timestamp("created_at").defaultNow().notNull(),
 });
 

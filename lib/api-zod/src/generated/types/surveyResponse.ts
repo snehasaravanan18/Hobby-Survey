@@ -13,5 +13,7 @@ export interface SurveyResponse {
   frequency: string;
   hobbies: string[];
   other_hobby?: string;
+  free_time_hours: string;
+  stress_level: string;
   created_at: string;
 }

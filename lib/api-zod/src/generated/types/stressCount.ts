@@ -6,12 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface SurveySubmission {
-  major: string;
-  state: string;
-  frequency: string;
-  hobbies: string[];
-  other_hobby?: string;
-  free_time_hours: string;
+export interface StressCount {
   stress_level: string;
+  count: number;
 }

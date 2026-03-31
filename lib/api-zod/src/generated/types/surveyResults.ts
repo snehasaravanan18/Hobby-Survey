@@ -5,13 +5,17 @@
  * API specification for Student Hobby Survey
  * OpenAPI spec version: 0.1.0
  */
+import type { FreeTimeCount } from "./freeTimeCount";
 import type { FrequencyCount } from "./frequencyCount";
 import type { HobbyCount } from "./hobbyCount";
 import type { StateCount } from "./stateCount";
+import type { StressCount } from "./stressCount";
 
 export interface SurveyResults {
   total_responses: number;
   frequency_counts: FrequencyCount[];
   hobby_counts: HobbyCount[];
   top_states: StateCount[];
+  free_time_counts: FreeTimeCount[];
+  stress_counts: StressCount[];
 }

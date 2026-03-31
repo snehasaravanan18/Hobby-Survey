@@ -85,11 +85,17 @@ components:
             type: string
         other_hobby:
           type: string
+        free_time_hours:
+          type: string
+        stress_level:
+          type: string
       required:
         - major
         - state
         - frequency
         - hobbies
+        - free_time_hours
+        - stress_level
     SurveyResponse:
       type: object
       properties:
@@ -107,6 +113,10 @@ components:
             type: string
         other_hobby:
           type: string
+        free_time_hours:
+          type: string
+        stress_level:
+          type: string
         created_at:
           type: string
       required:
@@ -115,6 +125,8 @@ components:
         - state
         - frequency
         - hobbies
+        - free_time_hours
+        - stress_level
         - created_at
     SurveyResults:
       type: object
@@ -133,11 +145,21 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/StateCount"
+        free_time_counts:
+          type: array
+          items:
+            $ref: "#/components/schemas/FreeTimeCount"
+        stress_counts:
+          type: array
+          items:
+            $ref: "#/components/schemas/StressCount"
       required:
         - total_responses
         - frequency_counts
         - hobby_counts
         - top_states
+        - free_time_counts
+        - stress_counts
     FrequencyCount:
       type: object
       properties:
@@ -167,6 +189,26 @@ components:
           type: integer
       required:
         - state
+        - count
+    FreeTimeCount:
+      type: object
+      properties:
+        free_time_hours:
+          type: string
+        count:
+          type: integer
+      required:
+        - free_time_hours
+        - count
+    StressCount:
+      type: object
+      properties:
+        stress_level:
+          type: string
+        count:
+          type: integer
+      required:
+        - stress_level
         - count
     ErrorResponse:
       type: object

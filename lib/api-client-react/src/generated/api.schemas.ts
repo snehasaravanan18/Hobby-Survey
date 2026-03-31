@@ -15,6 +15,8 @@ export interface SurveySubmission {
   frequency: string;
   hobbies: string[];
   other_hobby?: string;
+  free_time_hours: string;
+  stress_level: string;
 }
 
 export interface SurveyResponse {
@@ -24,6 +26,8 @@ export interface SurveyResponse {
   frequency: string;
   hobbies: string[];
   other_hobby?: string;
+  free_time_hours: string;
+  stress_level: string;
   created_at: string;
 }
 
@@ -42,11 +46,23 @@ export interface StateCount {
   count: number;
 }
 
+export interface FreeTimeCount {
+  free_time_hours: string;
+  count: number;
+}
+
+export interface StressCount {
+  stress_level: string;
+  count: number;
+}
+
 export interface SurveyResults {
   total_responses: number;
   frequency_counts: FrequencyCount[];
   hobby_counts: HobbyCount[];
   top_states: StateCount[];
+  free_time_counts: FreeTimeCount[];
+  stress_counts: StressCount[];
 }
 
 export interface ErrorResponse {

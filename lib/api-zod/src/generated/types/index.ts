@@ -7,10 +7,12 @@
  */
 
 export * from "./errorResponse";
+export * from "./freeTimeCount";
 export * from "./frequencyCount";
 export * from "./healthStatus";
 export * from "./hobbyCount";
 export * from "./stateCount";
+export * from "./stressCount";
 export * from "./surveyResponse";
 export * from "./surveyResults";
 export * from "./surveySubmission";

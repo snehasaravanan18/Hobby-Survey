@@ -24,6 +24,8 @@ export const SubmitSurveyBody = zod.object({
   frequency: zod.string(),
   hobbies: zod.array(zod.string()),
   other_hobby: zod.string().optional(),
+  free_time_hours: zod.string(),
+  stress_level: zod.string(),
 });
 
 /**
@@ -46,6 +48,18 @@ export const GetSurveyResultsResponse = zod.object({
   top_states: zod.array(
     zod.object({
       state: zod.string(),
+      count: zod.number(),
+    }),
+  ),
+  free_time_counts: zod.array(
+    zod.object({
+      free_time_hours: zod.string(),
+      count: zod.number(),
+    }),
+  ),
+  stress_counts: zod.array(
+    zod.object({
+      stress_level: zod.string(),
       count: zod.number(),
     }),
   ),

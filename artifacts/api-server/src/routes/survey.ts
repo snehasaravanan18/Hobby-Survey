@@ -12,7 +12,7 @@ router.post("/survey/submit", async (req, res): Promise<void> => {
     return;
   }
 
-  const { major, state, frequency, hobbies, other_hobby } = parsed.data;
+  const { major, state, frequency, hobbies, other_hobby, free_time_hours, stress_level } = parsed.data;
 
   const [response] = await db
     .insert(surveyResponsesTable)
@@ -22,6 +22,8 @@ router.post("/survey/submit", async (req, res): Promise<void> => {
       frequency,
       hobbies,
       other_hobby: other_hobby ?? null,
+      free_time_hours,
+      stress_level,
     })
     .returning();
 
@@ -32,6 +34,8 @@ router.post("/survey/submit", async (req, res): Promise<void> => {
     frequency: response.frequency,
     hobbies: response.hobbies,
     other_hobby: response.other_hobby,
+    free_time_hours: response.free_time_hours,
+    stress_level: response.stress_level,
     created_at: response.created_at.toISOString(),
   });
 });
@@ -42,12 +46,13 @@ router.get("/survey/results", async (req, res): Promise<void> => {
     .from(surveyResponsesTable);
   const total_responses = totalResult[0]?.count ?? 0;
 
+  const frequencyOrder = ["Daily", "A few times a week", "Occasionally", "Rarely"];
+
   const frequencyResult = await db.execute<{ frequency: string; count: number }>(
     sql`
       SELECT frequency, COUNT(*)::int as count
       FROM survey_responses
       GROUP BY frequency
-      ORDER BY count DESC
     `
   );
 
@@ -70,11 +75,38 @@ router.get("/survey/results", async (req, res): Promise<void> => {
     `
   );
 
+  const freeTimeResult = await db.execute<{ free_time_hours: string; count: number }>(
+    sql`
+      SELECT free_time_hours, COUNT(*)::int as count
+      FROM survey_responses
+      GROUP BY free_time_hours
+    `
+  );
+
+  const stressResult = await db.execute<{ stress_level: string; count: number }>(
+    sql`
+      SELECT stress_level, COUNT(*)::int as count
+      FROM survey_responses
+      GROUP BY stress_level
+      ORDER BY count DESC
+    `
+  );
+
+  const freeTimeOrder = ["Less than 1 hour", "1–2 hours", "3–4 hours", "5+ hours"];
+  const sortedFrequency = [...frequencyResult.rows].sort(
+    (a, b) => frequencyOrder.indexOf(a.frequency) - frequencyOrder.indexOf(b.frequency)
+  );
+  const sortedFreeTime = [...freeTimeResult.rows].sort(
+    (a, b) => freeTimeOrder.indexOf(a.free_time_hours) - freeTimeOrder.indexOf(b.free_time_hours)
+  );
+
   const data = GetSurveyResultsResponse.parse({
     total_responses,
-    frequency_counts: frequencyResult.rows,
+    frequency_counts: sortedFrequency,
     hobby_counts: hobbiesResult.rows,
     top_states: statesResult.rows,
+    free_time_counts: sortedFreeTime,
+    stress_counts: stressResult.rows,
   });
 
   res.json(data);
