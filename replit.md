@@ -50,6 +50,15 @@ Every package extends `tsconfig.base.json` which sets `composite: true`. The roo
 
 ## Packages
 
+### `artifacts/survey` (`@workspace/survey`)
+
+React + Vite frontend for the Student Hobby Survey. Deployed at `/` (root path).
+
+- Survey form at `/` with 4 questions: major (text), state (dropdown), frequency (radio), hobbies (checkboxes + conditional Other)
+- Results dashboard at `/results` with Recharts charts (frequency bar, hobbies horizontal bar, top states)
+- Uses `@workspace/api-client-react` hooks: `useSubmitSurvey`, `useGetSurveyResults`
+- Styled with primary purple (#8A3BDB), Plus Jakarta Sans font, fully responsive
+
 ### `artifacts/api-server` (`@workspace/api-server`)
 
 Express 5 API server. Routes live in `src/routes/` and use `@workspace/api-zod` for request and response validation and `@workspace/db` for persistence.

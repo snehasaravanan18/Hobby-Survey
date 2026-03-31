@@ -1,0 +1,185 @@
+Product Requirements Document: Student Hobby Survey 
+
+Overview 
+
+Build a web-based survey for undergraduate students to collect information about their hobbies and lifestyle habits. The app includes a survey form and a results page displaying aggregated data. Responses are stored in Supabase. 
+
+ 
+
+Tech Stack 
+
+Framework: Vite + React 
+
+Database: Supabase (PostgreSQL) 
+
+Hosting: Azure Static Web Apps 
+
+Charting: Recharts 
+
+ 
+
+Survey Questions 
+
+# 
+
+Question 
+
+Input Type 
+
+1 
+
+What is your major? 
+
+Text input 
+
+2 
+
+What state are you from? 
+
+Dropdown 
+
+3 
+
+How often do you engage in hobbies? 
+
+Radio buttons 
+
+4 
+
+What hobbies do you do to relax? 
+
+Checkboxes + conditional text 
+
+ 
+
+Question Details 
+
+Q1 — Major 
+
+Text input 
+
+Placeholder: "e.g. Business Analytics" 
+
+Required 
+
+Q2 — State 
+
+Dropdown with all 50 U.S. states 
+
+Required 
+
+Q3 — Hobby Frequency 
+
+Daily 
+
+A few times a week 
+
+Occasionally 
+
+Rarely 
+
+Required 
+
+Q4 — Hobbies (Select all that apply) 
+
+Read 
+
+Exercise 
+
+Watch TV/Movies 
+
+Social Media 
+
+Gaming 
+
+Other 
+
+If "Other" is selected: 
+
+Show a text input 
+
+Required if selected 
+
+ 
+
+Form Behavior 
+
+All fields required 
+
+Show validation errors if incomplete 
+
+"Other" input appears dynamically 
+
+Show "Submitting..." while loading 
+
+After submission → show confirmation page with answers 
+
+Include "View Results" button 
+
+ 
+
+Results Page 
+
+Route: /results 
+
+Display: 
+
+Total responses 
+
+Hobby frequency chart (bar chart) 
+
+Popular hobbies chart (horizontal bar chart) 
+
+Top states (top 10) 
+
+ 
+
+Database 
+
+Table: survey_responses 
+
+Fields: 
+
+id (uuid) 
+
+major (text) 
+
+state (text) 
+
+frequency (text) 
+
+hobbies (text[]) 
+
+other_hobby (text) 
+
+created_at (timestamp) 
+
+ 
+
+Environment Variables 
+
+VITE_SUPABASE_URL 
+
+VITE_SUPABASE_ANON_KEY 
+
+ 
+
+Design 
+
+Clean, minimal UI 
+
+Primary color: #8A3BDB 
+
+Responsive for mobile + desktop 
+
+ 
+
+Deployment 
+
+Use Azure Static Web Apps. 
+
+Include staticwebapp.config.json: 
+
+```json { "navigationFallback": { "rewrite": "/index.html", "exclude": ["/assets/*"] } } 
+
+ 

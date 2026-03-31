@@ -1,15 +1,16 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: API specification for Student Hobby Survey
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: survey
+    description: Survey response operations
 paths:
   /healthz:
     get:
@@ -24,6 +25,42 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /survey/submit:
+    post:
+      operationId: submitSurvey
+      tags: [survey]
+      summary: Submit a survey response
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SurveySubmission"
+      responses:
+        "201":
+          description: Survey submitted successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SurveyResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /survey/results:
+    get:
+      operationId: getSurveyResults
+      tags: [survey]
+      summary: Get aggregated survey results
+      responses:
+        "200":
+          description: Aggregated survey results
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SurveyResults"
 components:
   schemas:
     HealthStatus:
@@ -33,4 +70,108 @@ components:
           type: string
       required:
         - status
-
+    SurveySubmission:
+      type: object
+      properties:
+        major:
+          type: string
+        state:
+          type: string
+        frequency:
+          type: string
+        hobbies:
+          type: array
+          items:
+            type: string
+        other_hobby:
+          type: string
+      required:
+        - major
+        - state
+        - frequency
+        - hobbies
+    SurveyResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        major:
+          type: string
+        state:
+          type: string
+        frequency:
+          type: string
+        hobbies:
+          type: array
+          items:
+            type: string
+        other_hobby:
+          type: string
+        created_at:
+          type: string
+      required:
+        - id
+        - major
+        - state
+        - frequency
+        - hobbies
+        - created_at
+    SurveyResults:
+      type: object
+      properties:
+        total_responses:
+          type: integer
+        frequency_counts:
+          type: array
+          items:
+            $ref: "#/components/schemas/FrequencyCount"
+        hobby_counts:
+          type: array
+          items:
+            $ref: "#/components/schemas/HobbyCount"
+        top_states:
+          type: array
+          items:
+            $ref: "#/components/schemas/StateCount"
+      required:
+        - total_responses
+        - frequency_counts
+        - hobby_counts
+        - top_states
+    FrequencyCount:
+      type: object
+      properties:
+        frequency:
+          type: string
+        count:
+          type: integer
+      required:
+        - frequency
+        - count
+    HobbyCount:
+      type: object
+      properties:
+        hobby:
+          type: string
+        count:
+          type: integer
+      required:
+        - hobby
+        - count
+    StateCount:
+      type: object
+      properties:
+        state:
+          type: string
+        count:
+          type: integer
+      required:
+        - state
+        - count
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
