@@ -16,3 +16,4 @@ export * from "./stressCount";
 export * from "./surveyResponse";
 export * from "./surveyResults";
 export * from "./surveySubmission";
+export * from "./travelFrequencyCount";

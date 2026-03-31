@@ -10,9 +10,11 @@ import type { FrequencyCount } from "./frequencyCount";
 import type { HobbyCount } from "./hobbyCount";
 import type { StateCount } from "./stateCount";
 import type { StressCount } from "./stressCount";
+import type { TravelFrequencyCount } from "./travelFrequencyCount";
 
 export interface SurveyResults {
   total_responses: number;
+  travel_frequency_counts: TravelFrequencyCount[];
   frequency_counts: FrequencyCount[];
   hobby_counts: HobbyCount[];
   top_states: StateCount[];

@@ -10,25 +10,32 @@ export interface HealthStatus {
 }
 
 export interface SurveySubmission {
-  major: string;
+  travel_frequency: string;
   state: string;
   frequency: string;
   hobbies: string[];
   other_hobby?: string;
   free_time_hours: string;
   stress_level: string;
+  favorite_food: string;
 }
 
 export interface SurveyResponse {
   id: string;
-  major: string;
+  travel_frequency: string;
   state: string;
   frequency: string;
   hobbies: string[];
   other_hobby?: string;
   free_time_hours: string;
   stress_level: string;
+  favorite_food: string;
   created_at: string;
+}
+
+export interface TravelFrequencyCount {
+  travel_frequency: string;
+  count: number;
 }
 
 export interface FrequencyCount {
@@ -58,6 +65,7 @@ export interface StressCount {
 
 export interface SurveyResults {
   total_responses: number;
+  travel_frequency_counts: TravelFrequencyCount[];
   frequency_counts: FrequencyCount[];
   hobby_counts: HobbyCount[];
   top_states: StateCount[];

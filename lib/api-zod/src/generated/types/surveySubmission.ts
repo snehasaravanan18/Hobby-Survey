@@ -7,11 +7,12 @@
  */
 
 export interface SurveySubmission {
-  major: string;
+  travel_frequency: string;
   state: string;
   frequency: string;
   hobbies: string[];
   other_hobby?: string;
   free_time_hours: string;
   stress_level: string;
+  favorite_food: string;
 }

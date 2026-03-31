@@ -73,7 +73,7 @@ components:
     SurveySubmission:
       type: object
       properties:
-        major:
+        travel_frequency:
           type: string
         state:
           type: string
@@ -89,19 +89,22 @@ components:
           type: string
         stress_level:
           type: string
+        favorite_food:
+          type: string
       required:
-        - major
+        - travel_frequency
         - state
         - frequency
         - hobbies
         - free_time_hours
         - stress_level
+        - favorite_food
     SurveyResponse:
       type: object
       properties:
         id:
           type: string
-        major:
+        travel_frequency:
           type: string
         state:
           type: string
@@ -117,22 +120,29 @@ components:
           type: string
         stress_level:
           type: string
+        favorite_food:
+          type: string
         created_at:
           type: string
       required:
         - id
-        - major
+        - travel_frequency
         - state
         - frequency
         - hobbies
         - free_time_hours
         - stress_level
+        - favorite_food
         - created_at
     SurveyResults:
       type: object
       properties:
         total_responses:
           type: integer
+        travel_frequency_counts:
+          type: array
+          items:
+            $ref: "#/components/schemas/TravelFrequencyCount"
         frequency_counts:
           type: array
           items:
@@ -155,11 +165,22 @@ components:
             $ref: "#/components/schemas/StressCount"
       required:
         - total_responses
+        - travel_frequency_counts
         - frequency_counts
         - hobby_counts
         - top_states
         - free_time_counts
         - stress_counts
+    TravelFrequencyCount:
+      type: object
+      properties:
+        travel_frequency:
+          type: string
+        count:
+          type: integer
+      required:
+        - travel_frequency
+        - count
     FrequencyCount:
       type: object
       properties:

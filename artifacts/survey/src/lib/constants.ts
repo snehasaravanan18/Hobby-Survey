@@ -25,6 +25,13 @@ export const HOBBY_FREQUENCIES = [
   "Rarely"
 ];
 
+export const TRAVEL_FREQUENCIES = [
+  "Very often",
+  "Sometimes",
+  "Rarely",
+  "Never"
+];
+
 export const FREE_TIME_OPTIONS = [
   "Less than 1 hour",
   "1–2 hours",
