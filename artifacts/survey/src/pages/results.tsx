@@ -1,4 +1,4 @@
-import { useGetSurveyResults, getGetSurveyResultsQueryKey } from "@workspace/api-client-react";
+import { useEffect, useState } from "react";
 import { Link } from "wouter";
 import {
   BarChart,
@@ -21,6 +21,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft, Users, Activity, MapPin, Clock, Brain, Plane } from "lucide-react";
+import { supabase, type SurveyRow } from "@/lib/supabase";
 
 const PRIMARY = "hsl(271, 68%, 55%)";
 const PRIMARY_LIGHT = "hsl(271, 50%, 75%)";
@@ -39,6 +40,79 @@ const LABEL_STYLE = {
   fontSize: 12,
   fontWeight: 600,
 };
+
+function countBy<T>(items: T[], key: keyof T): { label: string; count: number }[] {
+  const map: Record<string, number> = {};
+  for (const item of items) {
+    const val = String(item[key]);
+    map[val] = (map[val] ?? 0) + 1;
+  }
+  return Object.entries(map).map(([label, count]) => ({ label, count }));
+}
+
+function aggregateResults(rows: SurveyRow[]) {
+  const travelOrder = ["Very often", "Sometimes", "Rarely", "Never"];
+  const frequencyOrder = ["Daily", "A few times a week", "Occasionally", "Rarely"];
+  const freeTimeOrder = ["Less than 1 hour", "1–2 hours", "3–4 hours", "5+ hours"];
+
+  const travel_frequency_counts = countBy(rows, "travel_frequency")
+    .sort((a, b) => {
+      const ai = travelOrder.indexOf(a.label);
+      const bi = travelOrder.indexOf(b.label);
+      return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
+    })
+    .map((x) => ({ travel_frequency: x.label, count: x.count }));
+
+  const frequency_counts = countBy(rows, "frequency")
+    .sort((a, b) => {
+      const ai = frequencyOrder.indexOf(a.label);
+      const bi = frequencyOrder.indexOf(b.label);
+      return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
+    })
+    .map((x) => ({ frequency: x.label, count: x.count }));
+
+  const hobbyMap: Record<string, number> = {};
+  for (const row of rows) {
+    for (const h of row.hobbies ?? []) {
+      hobbyMap[h] = (hobbyMap[h] ?? 0) + 1;
+    }
+  }
+  const hobby_counts = Object.entries(hobbyMap)
+    .map(([hobby, count]) => ({ hobby, count }))
+    .sort((a, b) => b.count - a.count);
+
+  const stateMap: Record<string, number> = {};
+  for (const row of rows) {
+    stateMap[row.state] = (stateMap[row.state] ?? 0) + 1;
+  }
+  const top_states = Object.entries(stateMap)
+    .map(([state, count]) => ({ state, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 10);
+
+  const free_time_counts = countBy(rows, "free_time_hours")
+    .sort((a, b) => {
+      const ai = freeTimeOrder.indexOf(a.label);
+      const bi = freeTimeOrder.indexOf(b.label);
+      return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
+    })
+    .map((x) => ({ free_time_hours: x.label, count: x.count }));
+
+  const stressOrder = ["Low", "Moderate", "High"];
+  const stress_counts = countBy(rows, "stress_level")
+    .sort((a, b) => stressOrder.indexOf(a.label) - stressOrder.indexOf(b.label))
+    .map((x) => ({ stress_level: x.label, count: x.count }));
+
+  return {
+    total_responses: rows.length,
+    travel_frequency_counts,
+    frequency_counts,
+    hobby_counts,
+    top_states,
+    free_time_counts,
+    stress_counts,
+  };
+}
 
 function ChartCard({
   title,
@@ -78,11 +152,29 @@ function ChartCard({
 }
 
 export default function Results() {
-  const { data, isLoading, error } = useGetSurveyResults({
-    query: { queryKey: getGetSurveyResultsQueryKey() },
-  });
+  const [rows, setRows] = useState<SurveyRow[] | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
-  if (isLoading) {
+  useEffect(() => {
+    async function load() {
+      console.log("[Results] Fetching survey_responses from Supabase...");
+      const { data, error } = await supabase
+        .from("survey_responses")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("[Results] Supabase fetch error:", error);
+        setLoadError(error.message);
+        return;
+      }
+      console.log("[Results] Fetched", data?.length, "rows");
+      setRows(data as SurveyRow[]);
+    }
+    load();
+  }, []);
+
+  if (rows === null && !loadError) {
     return (
       <div className="min-h-[100dvh] w-full bg-background p-4 md:p-8">
         <div className="max-w-6xl mx-auto space-y-8">
@@ -98,15 +190,13 @@ export default function Results() {
     );
   }
 
-  if (error || !data) {
+  if (loadError) {
     return (
       <div className="min-h-[100dvh] w-full flex items-center justify-center bg-background p-4">
         <Card className="w-full max-w-md text-center border-destructive/20 shadow-lg">
           <CardHeader>
             <CardTitle className="text-destructive">Error Loading Results</CardTitle>
-            <CardDescription>
-              We could not fetch the survey data at this time.
-            </CardDescription>
+            <CardDescription>{loadError}</CardDescription>
           </CardHeader>
           <div className="pb-8 flex justify-center">
             <Button asChild variant="outline">
@@ -126,14 +216,8 @@ export default function Results() {
     top_states,
     free_time_counts,
     stress_counts,
-  } = data;
+  } = aggregateResults(rows!);
 
-  const sortedHobbies = [...hobby_counts].sort((a, b) => b.count - a.count);
-
-  const stressOrder = ["Low", "Moderate", "High"];
-  const sortedStress = [...stress_counts].sort(
-    (a, b) => stressOrder.indexOf(a.stress_level) - stressOrder.indexOf(b.stress_level)
-  );
   const stressColors: Record<string, string> = {
     Low: "hsl(142, 60%, 50%)",
     Moderate: "hsl(38, 90%, 55%)",
@@ -232,7 +316,7 @@ export default function Results() {
               </BarChart>
             </ChartCard>
 
-            {/* Popular Hobbies — full width, horizontal bar, sorted descending */}
+            {/* Popular Hobbies — full width, horizontal, sorted descending */}
             <ChartCard
               fullWidth
               title="Popular Hobbies"
@@ -241,7 +325,7 @@ export default function Results() {
               height={320}
             >
               <BarChart
-                data={sortedHobbies}
+                data={hobby_counts}
                 layout="vertical"
                 margin={{ top: 4, right: 60, left: 12, bottom: 4 }}
               >
@@ -272,12 +356,8 @@ export default function Results() {
                   formatter={(v) => [v, "Responses"]}
                 />
                 <Bar dataKey="count" radius={[0, 6, 6, 0]} barSize={30}>
-                  <LabelList
-                    dataKey="count"
-                    position="right"
-                    style={LABEL_STYLE}
-                  />
-                  {sortedHobbies.map((_, i) => (
+                  <LabelList dataKey="count" position="right" style={LABEL_STYLE} />
+                  {hobby_counts.map((_, i) => (
                     <Cell
                       key={i}
                       fill={i === 0 ? PRIMARY : i === 1 ? PRIMARY_LIGHT : PRIMARY_LIGHTER}
@@ -331,7 +411,7 @@ export default function Results() {
               height={300}
             >
               <BarChart
-                data={sortedStress}
+                data={stress_counts}
                 margin={{ top: 24, right: 16, left: -16, bottom: 8 }}
               >
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
@@ -355,11 +435,8 @@ export default function Results() {
                 />
                 <Bar dataKey="count" radius={[6, 6, 0, 0]} maxBarSize={56}>
                   <LabelList dataKey="count" position="top" style={LABEL_STYLE} />
-                  {sortedStress.map((entry, i) => (
-                    <Cell
-                      key={i}
-                      fill={stressColors[entry.stress_level] ?? PRIMARY}
-                    />
+                  {stress_counts.map((entry, i) => (
+                    <Cell key={i} fill={stressColors[entry.stress_level] ?? PRIMARY} />
                   ))}
                 </Bar>
               </BarChart>
@@ -441,11 +518,7 @@ export default function Results() {
                   formatter={(v) => [v, "Responses"]}
                 />
                 <Bar dataKey="count" radius={[0, 6, 6, 0]} barSize={26}>
-                  <LabelList
-                    dataKey="count"
-                    position="right"
-                    style={LABEL_STYLE}
-                  />
+                  <LabelList dataKey="count" position="right" style={LABEL_STYLE} />
                   {top_states.map((_, i) => (
                     <Cell
                       key={i}

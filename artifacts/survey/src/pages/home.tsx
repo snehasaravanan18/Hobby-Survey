@@ -3,8 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Link } from "wouter";
-import { useSubmitSurvey, getGetSurveyResultsQueryKey } from "@workspace/api-client-react";
-import { useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
 
 import {
   US_STATES,
@@ -42,7 +41,7 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
-import { BookOpenCheck, Loader2, ArrowRight, BarChart3, CheckCircle2 } from "lucide-react";
+import { BookOpenCheck, Loader2, ArrowRight, BarChart3, CheckCircle2, AlertCircle } from "lucide-react";
 
 const formSchema = z
   .object({
@@ -84,8 +83,9 @@ function RadioOption({ value, label }: { value: string; label: string }) {
 }
 
 export default function Home() {
-  const queryClient = useQueryClient();
   const [submittedData, setSubmittedData] = useState<FormValues | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -101,17 +101,39 @@ export default function Home() {
     },
   });
 
-  const submitMutation = useSubmitSurvey({
-    mutation: {
-      onSuccess: (_data, variables) => {
-        queryClient.invalidateQueries({ queryKey: getGetSurveyResultsQueryKey() });
-        setSubmittedData(variables.data);
-      },
-    },
-  });
+  const onSubmit = async (values: FormValues) => {
+    setIsSubmitting(true);
+    setSubmitError(null);
 
-  const onSubmit = (values: FormValues) => {
-    submitMutation.mutate({ data: values });
+    const payload = {
+      travel_frequency: values.travel_frequency,
+      state: values.state,
+      frequency: values.frequency,
+      hobbies: values.hobbies,
+      other_hobby: values.other_hobby?.trim() || null,
+      free_time_hours: values.free_time_hours,
+      stress_level: values.stress_level,
+      favorite_food: values.favorite_food,
+    };
+
+    console.log("[Survey] Submitting payload:", payload);
+
+    const { data, error } = await supabase
+      .from("survey_responses")
+      .insert([payload])
+      .select()
+      .single();
+
+    setIsSubmitting(false);
+
+    if (error) {
+      console.error("[Survey] Supabase insert error:", error);
+      setSubmitError(error.message);
+      return;
+    }
+
+    console.log("[Survey] Insert success:", data);
+    setSubmittedData(values);
   };
 
   const showOtherHobbyInput = form.watch("hobbies").includes("Other");
@@ -463,14 +485,21 @@ export default function Home() {
                   )}
                 />
 
+                {submitError && (
+                  <div className="flex items-start gap-3 p-4 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm">
+                    <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+                    <span>{submitError}</span>
+                  </div>
+                )}
+
                 <Button
                   type="submit"
                   size="lg"
                   className="w-full h-14 text-base font-medium mt-6 group"
-                  disabled={submitMutation.isPending}
+                  disabled={isSubmitting}
                   data-testid="button-submit"
                 >
-                  {submitMutation.isPending ? (
+                  {isSubmitting ? (
                     <>
                       <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                       Submitting...
